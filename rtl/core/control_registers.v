@@ -40,6 +40,7 @@ module control_registers
 	output logic                          cr_update_dtlb_pa_en,
 	output[`TLB_INDEX_BITS:0]             cr_update_tlb_index,
 	output[31:0]                          cr_update_tlb_value,
+	output logic[`ASID_BITS - 1:0]        cr_current_asid[`STRANDS_PER_CORE],
 
 	// From memory access stage
 	input[`STRAND_INDEX_WIDTH - 1:0]      ex_strand,	// strand that is reading or writing control register
@@ -51,7 +52,7 @@ module control_registers
 	// To writeback stage
 	output logic[31:0]                    cr_read_value);
 
-	logic[31:0] saved_fault_pc[0:3];
+	logic[31:0] saved_fault_pc[`STRANDS_PER_CORE];
 	logic[`TLB_INDEX_BITS:0] tlb_index;	// Note extra bit to indicate I or D cache (D cache is 1)
 
 	// Need to move this out of always for Xilinx tools.
@@ -99,10 +100,14 @@ module control_registers
 	begin : update
 		if (reset)
 		begin
-		 	cr_strand_enable <= 1'b1;	// Enable strand 0
-			for (int i = 0; i < 4; i++)
+			for (int i = 0; i < `STRANDS_PER_CORE; i++)
+			begin
+				cr_current_asid[i] <= 0;
 				saved_fault_pc[i] <= 0;
+			end
 
+		 	cr_strand_enable <= 1'b1;	// Enable strand 0
+		
 			/*AUTORESET*/
 			// Beginning of autoreset for uninitialized flops
 			cr_exception_handler_address <= 32'h0;
@@ -122,12 +127,14 @@ module control_registers
 					CR_EXCEPTION_HANDLER: cr_exception_handler_address <= ma_cr_write_value;
 					CR_STRAND_ENABLE: cr_strand_enable <= ma_cr_write_value;
 					CR_HALT: cr_strand_enable <= 0;	// HALT
+					CR_CURRENT_ASID: cr_current_asid[ex_strand] <= ma_cr_write_value;
 				endcase
 			end
 			
 			// Fault handling
 			if (wb_latch_fault)
 				saved_fault_pc[wb_fault_strand] <= wb_fault_pc;
+			
 		end
 	end
 endmodule

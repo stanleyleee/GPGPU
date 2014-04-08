@@ -252,6 +252,8 @@ typedef enum logic [4:0] {
 	CR_UPDATE_TLB_INDEX = 5'd4,
 	CR_UPDATE_TLB_VA = 5'd5,
 	CR_UPDATE_TLB_PA = 5'd6,
+	CR_CURRENT_ASID = 6'd7,
+
 	CR_HALT_STRAND = 5'd29,
 	CR_STRAND_ENABLE = 5'd30,
 	CR_HALT = 5'd31

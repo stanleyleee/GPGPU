@@ -37,6 +37,7 @@ module instruction_pipeline
 	output [`STRAND_INDEX_WIDTH - 1:0]   icache_req_strand,
 	input [`STRANDS_PER_CORE - 1:0]      icache_load_complete_strands,
 	input                                icache_load_collision,
+	output logic[`ASID_BITS - 1:0]       cr_current_asid[`STRANDS_PER_CORE],	// also dcache
 
 	// Non-cacheable memory signals
 	output                               io_write_en,

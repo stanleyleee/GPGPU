@@ -70,6 +70,7 @@ module core
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
+	logic [`ASID_BITS-1:0] cr_current_asid [`STRANDS_PER_CORE];// From pipeline of instruction_pipeline.v
 	wire		cr_update_dtlb_pa_en;	// From pipeline of instruction_pipeline.v
 	wire		cr_update_dtlb_va_en;	// From pipeline of instruction_pipeline.v
 	wire		cr_update_itlb_pa_en;	// From pipeline of instruction_pipeline.v
@@ -122,6 +123,7 @@ module core
 	    .pc_event_cache_miss(pc_event_l1i_miss),
 	    .access_i(icache_request),
 	    .request_addr(icache_addr[31:6]),
+		.request_asid(cr_current_asid[icache_req_strand]),
 		.strand_i(icache_req_strand),
 	    .synchronized_i(1'b0),
 	    .l2req_ready(icache_l2req_ready),
@@ -169,6 +171,7 @@ module core
 	    .pc_event_cache_miss(pc_event_l1d_miss),
 	    .access_i(dcache_load),
 	    .request_addr(dcache_addr[25:0]),
+		.request_asid(cr_current_asid[dcache_req_strand]),
 	    .strand_i(dcache_req_strand[`STRAND_INDEX_WIDTH-1:0]),
 	    .synchronized_i(dcache_req_sync),
 	    .l2req_ready(dcache_l2req_ready),

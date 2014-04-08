@@ -46,6 +46,7 @@ module l1_cache
 	input [25:0]                         request_addr,
 	input [`STRAND_INDEX_WIDTH - 1:0]    strand_i,
 	input                                synchronized_i,
+	input[`ASID_BITS - 1:0]              request_asid,
 
 	// Response (one cycle later)
 	output [`CACHE_LINE_BITS - 1:0]      data_o,
@@ -81,7 +82,6 @@ module l1_cache
 	logic[`STRANDS_PER_CORE - 1:0] sync_load_wait;
 	logic[`STRANDS_PER_CORE - 1:0] sync_load_complete;
 	logic[25:0] tlb_pa;
-	wire[`ASID_BITS - 1:0] request_asid = 0;
 
 	wire is_for_me = l2rsp_packet.unit == UNIT_ID && l2rsp_packet.core == CORE_ID;
 	wire[`L1_SET_INDEX_WIDTH - 1:0] requested_set = request_addr[`L1_SET_INDEX_WIDTH - 1:0];
