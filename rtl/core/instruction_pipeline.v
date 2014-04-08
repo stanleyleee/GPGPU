@@ -65,6 +65,14 @@ module instruction_pipeline
 	input [`STRANDS_PER_CORE - 1:0]      dcache_resume_strands,
 	input                                dcache_load_collision,
 
+	// TLB update signals from control control registers to L1 caches
+	output                               cr_update_itlb_va_en,
+	output                               cr_update_itlb_pa_en,
+	output                               cr_update_dtlb_va_en,
+	output                               cr_update_dtlb_pa_en,
+	output[`TLB_INDEX_BITS:0]            cr_update_tlb_index,
+	output[31:0]                         cr_update_tlb_value,
+
 	// Performance counter events
 	output                               pc_event_mispredicted_branch,
 	output                               pc_event_instruction_issue,

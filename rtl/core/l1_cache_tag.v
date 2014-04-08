@@ -50,7 +50,13 @@ module l1_cache_tag
 	input                              invalidate_all_ways,
 	input[1:0]                         update_way_i,
 	input[`L1_TAG_WIDTH - 1:0]         update_tag_i,
-	input[`L1_SET_INDEX_WIDTH - 1:0]   update_set_i);
+	input[`L1_SET_INDEX_WIDTH - 1:0]   update_set_i,
+	
+	// TLB update
+	input                              update_tlb_va_en,
+	input                              update_tlb_pa_en,
+	input [`TLB_INDEX_BITS - 1:0]      update_tlb_index,
+	input [31:0]                       update_tlb_value);
 
 	logic[`L1_TAG_WIDTH * 4 - 1:0] tag;
 	logic[`L1_NUM_WAYS - 1:0] valid;
@@ -88,32 +94,25 @@ module l1_cache_tag
 	generate
 		if (ENABLE_TLB)
 		begin
-			localparam TLB_INDEX_WIDTH = $clog2(`NUM_TLB_ENTRIES);
-
-			logic [TLB_INDEX_WIDTH - 1:0] tlb_hit_index;
+			logic [`TLB_INDEX_BITS - 1:0] tlb_hit_index;
 		
 			cam #(.NUM_ENTRIES(`NUM_TLB_ENTRIES), .KEY_WIDTH($bits(request_asid) + $bits(request_addr))) tlb_cam(
 				.lookup_key({request_asid, request_addr}),
 				.lookup_index(tlb_hit_index),
 				.lookup_hit(tlb_hit),
-				
-				// XXX from update mem
-				.update_en(),
-				.update_key(),
-				.update_index(),
-				.update_valid(),
+				.update_en(update_tlb_va_en),
+				.update_key(update_tlb_value),
+				.update_index(update_tlb_index),
+				.update_valid(update_tlb_value[31:`PAGE_INDEX_BITS] != 0),	// Setting ASID to 0 invalidates
 				.*);
-			
 
 			sram_1r1w #(.DATA_WIDTH(`PAGE_INDEX_BITS), .SIZE(`NUM_TLB_ENTRIES)) tlb_mem(
 				.rd_enable(access_i),
 				.rd_addr(tlb_hit_index),
 				.rd_data(tlb_phys_addr),
-				
-				// XXX from update mem
-				.wr_enable(),
-				.wr_addr(),
-				.wr_data(),
+				.wr_enable(update_tlb_pa_en),
+				.wr_addr(update_tlb_index),
+				.wr_data(update_tlb_value[`PAGE_INDEX_BITS - 1:0]),
 				.*);
 		end
 	endgenerate

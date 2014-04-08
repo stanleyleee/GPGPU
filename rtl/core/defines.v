@@ -50,6 +50,7 @@
 
 `define PAGE_OFFSET_BITS $clog2(`PAGE_SIZE)
 `define PAGE_INDEX_BITS (32 - `PAGE_OFFSET_BITS)
+`define TLB_INDEX_BITS $clog2(`NUM_TLB_ENTRIES)
 
 // XXX Note that the cache line must be the same size as a vector register currently
 `define CACHE_LINE_BYTES 64
@@ -247,6 +248,10 @@ typedef enum logic [4:0] {
 	CR_STRAND_ID = 5'd0,
 	CR_EXCEPTION_HANDLER = 5'd1,
 	CR_FAULT_ADDRESS = 5'd2,
+	CR_FAULT_TYPE = 5'd3,
+	CR_UPDATE_TLB_INDEX = 5'd4,
+	CR_UPDATE_TLB_VA = 5'd5,
+	CR_UPDATE_TLB_PA = 5'd6,
 	CR_HALT_STRAND = 5'd29,
 	CR_STRAND_ENABLE = 5'd30,
 	CR_HALT = 5'd31

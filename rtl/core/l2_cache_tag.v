@@ -127,18 +127,25 @@ module l2_cache_tag
 				.clk(clk),
 				.reset(reset),
 				.request_addr(arb_l2req_packet.address),
-				.request_asid({`ASID_BITS{1'b0}}),	// unused 
 				.access_i(arb_l2req_packet.valid),
 				.cache_hit_o(tag_l1_has_line[core_index]),
-				.tlb_miss_o(),	// unused 
-				.tlb_pa_o(),	// unused 
 				.hit_way_o(tag_l1_way[core_index * `L1_WAY_INDEX_WIDTH+:`L1_WAY_INDEX_WIDTH]),
 				.invalidate_one_way(dir_update_directory && dir_update_dir_core == core_index && !dir_update_dir_valid),
 				.invalidate_all_ways(1'b0),
 				.update_i(dir_update_directory && dir_update_dir_core == core_index && dir_update_dir_valid),
 				.update_way_i(dir_update_dir_way),
 				.update_tag_i(dir_update_dir_tag),
-				.update_set_i(dir_update_dir_set));
+				.update_set_i(dir_update_dir_set),
+				
+				// These signals are not used because there is no TLB in the directory (it's not
+				// needed)
+				.request_asid({`ASID_BITS{1'b0}}),
+				.tlb_miss_o(),
+				.tlb_pa_o(), 
+				.update_tlb_va_en(),
+				.update_tlb_pa_en(),
+				.update_tlb_index(),
+				.update_tlb_value());
 		end
 	endgenerate
 

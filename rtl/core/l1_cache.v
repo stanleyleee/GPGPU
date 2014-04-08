@@ -60,7 +60,13 @@ module l1_cache
 	input                                l2req_ready,
 	output l2req_packet_t                l2req_packet,
 	input l2rsp_packet_t                 l2rsp_packet,
-	
+
+	// TLB update
+	input                                update_tlb_va_en,
+	input                                update_tlb_pa_en,
+	input [`TLB_INDEX_BITS - 1:0]        update_tlb_index,
+	input [31:0]                         update_tlb_value,
+
 	// Performance counter event
 	output logic                         pc_event_cache_hit,
 	output logic                         pc_event_cache_miss);

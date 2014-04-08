@@ -70,6 +70,12 @@ module core
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
+	wire		cr_update_dtlb_pa_en;	// From pipeline of instruction_pipeline.v
+	wire		cr_update_dtlb_va_en;	// From pipeline of instruction_pipeline.v
+	wire		cr_update_itlb_pa_en;	// From pipeline of instruction_pipeline.v
+	wire		cr_update_itlb_va_en;	// From pipeline of instruction_pipeline.v
+	wire [`TLB_INDEX_BITS:0] cr_update_tlb_index;// From pipeline of instruction_pipeline.v
+	wire [31:0]	cr_update_tlb_value;	// From pipeline of instruction_pipeline.v
 	wire [`CACHE_LINE_BITS-1:0] data_to_dcache;// From pipeline of instruction_pipeline.v
 	wire [25:0]	dcache_addr;		// From pipeline of instruction_pipeline.v
 	wire		dcache_dinvalidate;	// From pipeline of instruction_pipeline.v
@@ -120,6 +126,10 @@ module core
 	    .synchronized_i(1'b0),
 	    .l2req_ready(icache_l2req_ready),
 		.tlb_miss_o(icache_tlb_miss),
+		.update_tlb_index(cr_update_tlb_index),
+		.update_tlb_va_en(cr_update_itlb_va_en),
+		.update_tlb_pa_en(cr_update_itlb_pa_en),
+		.update_tlb_value(cr_update_tlb_value),
 		.*);
 	
 	always_ff @(posedge clk, posedge reset)
@@ -163,6 +173,10 @@ module core
 	    .synchronized_i(dcache_req_sync),
 	    .l2req_ready(dcache_l2req_ready),
 		.tlb_miss_o(dcache_tlb_miss),
+		.update_tlb_index(cr_update_tlb_index),
+		.update_tlb_va_en(cr_update_dtlb_va_en),
+		.update_tlb_pa_en(cr_update_dtlb_pa_en),
+		.update_tlb_value(cr_update_tlb_value),
 		.*);
 
 	store_buffer #(.CORE_ID(CORE_ID)) store_buffer(
