@@ -54,7 +54,9 @@ module core
 	output                               pc_event_cond_branch_taken,
 	output                               pc_event_cond_branch_not_taken,
 	output                               pc_event_vector_ins_issue,
-	output                               pc_event_mem_ins_issue);
+	output                               pc_event_mem_ins_issue,
+	output                               pc_event_dtlb_miss,
+	output                               pc_event_itlb_miss);
 
 	logic [`CACHE_LINE_BITS - 1:0] data_from_dcache;
 	logic [`CACHE_LINE_BITS - 1:0] cache_data;
@@ -95,6 +97,11 @@ module core
 	logic [`STRANDS_PER_CORE - 1:0] dcache_load_complete_strands;
 	logic [`CACHE_LINE_BYTES - 1:0] stbuf_mask;
 	logic stbuf_rollback;
+	logic dcache_tlb_miss;
+	logic icache_tlb_miss;
+
+	assign pc_event_itlb_miss = icache_tlb_miss;
+	assign pc_event_dtlb_miss = dcache_tlb_miss;
 
 	logic[3:0] l1i_lane_latched;
 
@@ -112,6 +119,7 @@ module core
 		.strand_i(icache_req_strand),
 	    .synchronized_i(1'b0),
 	    .l2req_ready(icache_l2req_ready),
+		.tlb_miss_o(icache_tlb_miss),
 		.*);
 	
 	always_ff @(posedge clk, posedge reset)
@@ -154,6 +162,7 @@ module core
 	    .strand_i(dcache_req_strand[`STRAND_INDEX_WIDTH-1:0]),
 	    .synchronized_i(dcache_req_sync),
 	    .l2req_ready(dcache_l2req_ready),
+		.tlb_miss_o(dcache_tlb_miss),
 		.*);
 
 	store_buffer #(.CORE_ID(CORE_ID)) store_buffer(

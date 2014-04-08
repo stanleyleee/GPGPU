@@ -123,12 +123,15 @@ module l2_cache_tag
 	generate 
 		for (core_index = 0; core_index < `NUM_CORES; core_index++)
 		begin : core_dir
-			l1_cache_tag directory(
+			l1_cache_tag #(.ENABLE_TLB(0)) directory(
 				.clk(clk),
 				.reset(reset),
 				.request_addr(arb_l2req_packet.address),
+				.request_asid({`ASID_BITS{1'b0}}),	// unused 
 				.access_i(arb_l2req_packet.valid),
 				.cache_hit_o(tag_l1_has_line[core_index]),
+				.tlb_miss_o(),	// unused 
+				.tlb_pa_o(),	// unused 
 				.hit_way_o(tag_l1_way[core_index * `L1_WAY_INDEX_WIDTH+:`L1_WAY_INDEX_WIDTH]),
 				.invalidate_one_way(dir_update_directory && dir_update_dir_core == core_index && !dir_update_dir_valid),
 				.invalidate_all_ways(1'b0),

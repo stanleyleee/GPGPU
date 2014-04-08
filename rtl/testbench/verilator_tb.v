@@ -379,6 +379,8 @@ module verilator_tb(
 
 		// These indices must match up with the order defined in gpgpu.v
 		$display("performance counters:");
+		$display(" dtlb_miss             %d", gpgpu.performance_counters.event_counter[18]);
+		$display(" itlb_miss             %d", gpgpu.performance_counters.event_counter[17]);
 		$display(" memory_ins_issue      %d", gpgpu.performance_counters.event_counter[16]);
 		$display(" vector_ins_issue      %d", gpgpu.performance_counters.event_counter[15]);
 		$display(" l2_writeback          %d", gpgpu.performance_counters.event_counter[14]);

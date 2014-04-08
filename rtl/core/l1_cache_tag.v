@@ -28,16 +28,21 @@
 //
 
 module l1_cache_tag
+	#(parameter ENABLE_TLB = 0)
+
 	(input                             clk,
 	input                              reset,
 	
 	// Request
-	input[25:0]                        request_addr,
 	input                              access_i,
+	input[25:0]                        request_addr,
+	input[`ASID_BITS - 1:0]            request_asid,
 	
 	// Response	
 	output [1:0]                       hit_way_o,
 	output                             cache_hit_o,
+	output                             tlb_miss_o,
+	output [25:0]                      tlb_pa_o,
 
 	// Update (from L2 cache)
 	input                              update_i,
@@ -50,8 +55,11 @@ module l1_cache_tag
 	logic[`L1_TAG_WIDTH * 4 - 1:0] tag;
 	logic[`L1_NUM_WAYS - 1:0] valid;
 	logic access_latched;
-	logic[`L1_TAG_WIDTH - 1:0] request_tag_latched;
+	logic[25:0] request_va_latched;
+	logic[25:0] request_pa_latched;
+	logic[`PAGE_INDEX_BITS - 1:0] tlb_phys_addr;
 	logic[`L1_NUM_WAYS - 1:0] update_way;
+	logic mmu_enable_latched;
 
 	wire[`L1_SET_INDEX_WIDTH - 1:0] requested_set_index = request_addr[`L1_SET_INDEX_WIDTH - 1:0];
 	wire[`L1_TAG_WIDTH - 1:0] requested_tag = request_addr[25:`L1_SET_INDEX_WIDTH];
@@ -75,6 +83,41 @@ module l1_cache_tag
 		.wr_data(update_tag_i),
 		.wr_enable(update_way));
 		
+	logic tlb_hit;
+
+	generate
+		if (ENABLE_TLB)
+		begin
+			localparam TLB_INDEX_WIDTH = $clog2(`NUM_TLB_ENTRIES);
+
+			logic [TLB_INDEX_WIDTH - 1:0] tlb_hit_index;
+		
+			cam #(.NUM_ENTRIES(`NUM_TLB_ENTRIES), .KEY_WIDTH($bits(request_asid) + $bits(request_addr))) tlb_cam(
+				.lookup_key({request_asid, request_addr}),
+				.lookup_index(tlb_hit_index),
+				.lookup_hit(tlb_hit),
+				
+				// XXX from update mem
+				.update_en(),
+				.update_key(),
+				.update_index(),
+				.update_valid(),
+				.*);
+			
+
+			sram_1r1w #(.DATA_WIDTH(`PAGE_INDEX_BITS), .SIZE(`NUM_TLB_ENTRIES)) tlb_mem(
+				.rd_enable(access_i),
+				.rd_addr(tlb_hit_index),
+				.rd_data(tlb_phys_addr),
+				
+				// XXX from update mem
+				.wr_enable(),
+				.wr_addr(),
+				.wr_data(),
+				.*);
+		end
+	endgenerate
+		
 	always_ff @(posedge clk, posedge reset)
 	begin
 		if (reset)
@@ -82,7 +125,8 @@ module l1_cache_tag
 			/*AUTORESET*/
 			// Beginning of autoreset for uninitialized flops
 			access_latched <= 1'h0;
-			request_tag_latched <= {(1+(`L1_TAG_WIDTH-1)){1'b0}};
+			mmu_enable_latched <= 1'h0;
+			request_va_latched <= 26'h0;
 			// End of automatics
 		end
 		else
@@ -93,22 +137,41 @@ module l1_cache_tag
 			// Make sure more than one way isn't a hit
 			assert($onehot0(hit_way_oh) || !access_latched);
 
+			// Cache hit should not be asserted when there is a TLB miss.
+			assert(!(cache_hit_o && tlb_miss_o));
+
 			access_latched <= access_i;
-			request_tag_latched <= requested_tag;
+			request_va_latched <= request_addr;
+			mmu_enable_latched <= request_asid != 0;	// ASID 0 is hard coded to map 1:1 phys/virtual
 		end
 	end
 
+	generate
+		if (ENABLE_TLB)
+		begin
+			assign request_pa_latched = mmu_enable_latched 
+				? { tlb_phys_addr, {25 - $bits(tlb_phys_addr){1'b0}} } 
+				: request_va_latched;
+		end
+		else
+			assign request_pa_latched = request_va_latched;
+	endgenerate
+	
+	assign tlb_pa_o = request_pa_latched;
+	
 	logic [`L1_NUM_WAYS - 1:0] hit_way_oh;
 	genvar way;
 	generate
 		for (way = 0; way < `L1_NUM_WAYS; way++)
 		begin : makeway
 			assign hit_way_oh[way] = tag[way * `L1_TAG_WIDTH+:`L1_TAG_WIDTH] ==
-				request_tag_latched && valid[way];
+				request_pa_latched[25:`L1_SET_INDEX_WIDTH] && valid[way];
 			assign update_way[way] = ((invalidate_one_way || update_i) 
 				&& update_way_i == way) || invalidate_all_ways;
 		end
 	endgenerate
+	
+	assign tlb_miss_o = access_latched && !tlb_hit && mmu_enable_latched;
 
 	one_hot_to_index #(.NUM_SIGNALS(`L1_NUM_WAYS)) cvt_hit_way(
 		.one_hot(hit_way_oh),

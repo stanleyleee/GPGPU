@@ -41,18 +41,19 @@ module l1_cache
 	(input                               clk,
 	input                                reset,
 	
-	// From memory access stage
+	// Incoming request
 	input                                access_i,
 	input [25:0]                         request_addr,
 	input [`STRAND_INDEX_WIDTH - 1:0]    strand_i,
 	input                                synchronized_i,
 
-	// To writeback stage
+	// Response (one cycle later)
 	output [`CACHE_LINE_BITS - 1:0]      data_o,
 	output                               cache_hit_o,
 	output                               load_collision_o,
+	output                               tlb_miss_o,
 	
-	// To strand select stage
+	// Cache miss completion
 	output [`STRANDS_PER_CORE - 1:0]     load_complete_strands_o,
 
 	// L2 interface
@@ -67,13 +68,14 @@ module l1_cache
 	logic[`L1_WAY_INDEX_WIDTH - 1:0] lru_way;
 	logic access_latched;
 	logic	synchronized_latched;
-	logic[25:0] request_addr_latched;
 	logic[`STRAND_INDEX_WIDTH - 1:0] strand_latched;
 	logic load_collision1;
 	logic[`L1_WAY_INDEX_WIDTH - 1:0] hit_way;
 	logic data_in_cache;
 	logic[`STRANDS_PER_CORE - 1:0] sync_load_wait;
 	logic[`STRANDS_PER_CORE - 1:0] sync_load_complete;
+	logic[25:0] tlb_pa;
+	wire[`ASID_BITS - 1:0] request_asid = 0;
 
 	wire is_for_me = l2rsp_packet.unit == UNIT_ID && l2rsp_packet.core == CORE_ID;
 	wire[`L1_SET_INDEX_WIDTH - 1:0] requested_set = request_addr[`L1_SET_INDEX_WIDTH - 1:0];
@@ -89,13 +91,14 @@ module l1_cache
 		&& UNIT_ID == UNIT_DCACHE && l2rsp_packet.update[CORE_ID];
 	wire invalidate_all_ways = l2rsp_packet.valid && UNIT_ID == UNIT_ICACHE && l2rsp_packet.op
 		== L2RSP_IINVALIDATE;
-	l1_cache_tag tag_mem(
+	l1_cache_tag #(.ENABLE_TLB(`ENABLE_MMU)) tag_mem(
 		.hit_way_o(hit_way),
 		.cache_hit_o(data_in_cache),
 		.update_i(got_load_response),	
 		.update_way_i(l2rsp_packet.way[`L1_WAY_INDEX_WIDTH * CORE_ID+:`L1_WAY_INDEX_WIDTH]),
 		.update_tag_i(l2_response_tag),
 		.update_set_i(l2_response_set),
+		.tlb_pa_o(tlb_pa),
 		.*);
 
 	// Check the unit for loads to differentiate between icache and dcache.
@@ -147,7 +150,7 @@ module l1_cache
 	// (being cleared now), nor in the cache data (hasn't been latched yet).
 	// Detect that here.
 	wire load_collision2 = got_load_response
-		&& l2rsp_packet.address == request_addr_latched
+		&& l2rsp_packet.address == tlb_pa
 		&& access_latched;
 
 	logic need_sync_rollback;
@@ -180,7 +183,7 @@ module l1_cache
 		.clk(clk),
 		.request_i(queue_cache_load),
 		.synchronized_i(synchronized_latched),
-		.request_addr(request_addr_latched),
+		.request_addr(tlb_pa),
 		.victim_way_i(load_way),
 		.strand_i(strand_latched),
 		.*);
@@ -208,7 +211,6 @@ module l1_cache
 			access_latched <= 1'h0;
 			load_collision1 <= 1'h0;
 			need_sync_rollback <= 1'h0;
-			request_addr_latched <= 26'h0;
 			strand_latched <= {(1+(`STRAND_INDEX_WIDTH-1)){1'b0}};
 			sync_load_complete <= {(1+(`STRANDS_PER_CORE-1)){1'b0}};
 			sync_load_wait <= {(1+(`STRANDS_PER_CORE-1)){1'b0}};
@@ -231,7 +233,6 @@ module l1_cache
 	
 			access_latched <= access_i;
 			synchronized_latched <= synchronized_i;
-			request_addr_latched <= request_addr;
 			strand_latched <= strand_i;
 			sync_load_wait <= ((sync_load_wait & ~sync_ack_oh) | (sync_req_oh & ~sync_load_complete));
 			sync_load_complete <= (sync_load_complete | sync_ack_oh) & ~sync_req_oh;

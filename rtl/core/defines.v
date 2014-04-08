@@ -38,10 +38,18 @@
 
 `define AXI_DATA_WIDTH 32
 
+`define ENABLE_MMU 1
+
+`define PAGE_SIZE 'h1000
+`define NUM_TLB_ENTRIES 32
+`define ASID_BITS 4
 
 ////////////////////////////////////////////////////////////////////
 // Constants
 ////////////////////////////////////////////////////////////////////
+
+`define PAGE_OFFSET_BITS $clog2(`PAGE_SIZE)
+`define PAGE_INDEX_BITS (32 - `PAGE_OFFSET_BITS)
 
 // XXX Note that the cache line must be the same size as a vector register currently
 `define CACHE_LINE_BYTES 64
