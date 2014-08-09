@@ -47,6 +47,11 @@ module verilator_tb(
 	wire		io_write_en;		// From gpgpu of gpgpu.v
 	// End of automatics
 
+	logic ts_instruction_valid;
+	scalar_t ts_instruction_pc;
+	logic id_instruction_valid;
+	scalar_t id_instruction_pc;
+
 	`define CORE0 gpgpu.core_gen[0].core
 	`define MEMORY memory.memory.data
 
@@ -77,6 +82,29 @@ module verilator_tb(
 		logic[`CACHE_LINE_BYTES - 1:0] mask;
 		vector_t data;
 	} trace_event_t;
+
+	logic[87:0] capture_data;
+	logic capture_enable;
+	logic trigger;
+	logic[31:0] event_count;
+	logic uart_tx;
+	
+	assign capture_data = { event_count[7:0], 6'b010010, id_instruction_valid, ts_instruction_valid,
+		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
+	assign capture_enable = id_instruction_valid || ts_instruction_valid;
+	assign trigger = event_count == 8;
+
+	debug_trace #(.CAPTURE_WIDTH_BITS($bits(capture_data)), .CAPTURE_SIZE(128),
+		.BAUD_DIVIDE(1)) debug_trace(.*);
+
+	always_ff @(posedge clk, posedge reset)
+	begin
+		if (reset)
+			event_count <= 0;
+		else if (capture_enable)
+			event_count <= event_count + 1;
+	end
+
 	
 	int total_cycles = 0;
 	reg[1000:0] filename;

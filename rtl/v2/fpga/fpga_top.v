@@ -71,6 +71,11 @@ module fpga_top(
 	wire		processor_halt;		// From gpgpu of gpgpu.v
 	// End of automatics
 
+	logic ts_instruction_valid;
+	scalar_t ts_instruction_pc;
+	logic id_instruction_valid;
+	scalar_t id_instruction_pc;
+
 	axi_interface axi_bus_m0();
 	axi_interface axi_bus_m1();
 	axi_interface axi_bus_s0();
@@ -203,8 +208,9 @@ module fpga_top(
 	logic trigger;
 	logic[31:0] event_count;
 	
-	assign capture_data = {};
-	assign capture_enable = 1;
+	assign capture_data = { event_count[7:0], 6'b010010, id_instruction_valid, ts_instruction_valid,
+		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
+	assign capture_enable = id_instruction_valid || ts_instruction_valid;
 	assign trigger = event_count == 120;
 
 	debug_trace #(.CAPTURE_WIDTH_BITS($bits(capture_data)), .CAPTURE_SIZE(128),

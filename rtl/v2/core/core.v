@@ -37,7 +37,13 @@ module core
 	// Non-cacheable IO interface
 	output ioreq_packet_t                  ior_request,
 	input                                  ia_ready,
-	input iorsp_packet_t                   ia_response);
+	input iorsp_packet_t                   ia_response,
+	
+	// DEBUG
+	output logic                           ts_instruction_valid,
+	output scalar_t                        ts_instruction_pc,
+	output logic                           id_instruction_valid,
+	output scalar_t                        id_instruction_pc);
 
 	scalar_t cr_creg_read_val;
 
@@ -257,6 +263,9 @@ module core
 	thread_idx_t	wb_writeback_thread_idx;// From writeback_stage of writeback_stage.v
 	vector_t	wb_writeback_value;	// From writeback_stage of writeback_stage.v
 	// End of automatics
+
+	assign ts_instruction_pc = ts_instruction.pc;
+	assign id_instruction_pc = id_instruction.pc;
 
 	// 
 	// Instruction Execution Pipeline

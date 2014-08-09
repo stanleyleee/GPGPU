@@ -35,7 +35,13 @@ module gpgpu(
 	output            io_read_en,
 	output[31:0]      io_address,
 	output[31:0]      io_write_data,
-	input [31:0]      io_read_data);
+	input [31:0]      io_read_data,
+	
+	// DEBUG
+	output logic      ts_instruction_valid,
+	output scalar_t   ts_instruction_pc,
+	output logic      id_instruction_valid,
+	output scalar_t   id_instruction_pc);
 
 	l2req_packet_t l2i_request[`NUM_CORES];
 	l2rsp_packet_t l2_response;
