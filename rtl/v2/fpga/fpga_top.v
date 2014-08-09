@@ -74,9 +74,7 @@ module fpga_top(
 	// End of automatics
 
 	logic ts_instruction_valid;
-	scalar_t ts_instruction_pc;
 	logic id_instruction_valid;
-	scalar_t id_instruction_pc;
 	logic DEBUG_fetch_en;
 
 	axi_interface axi_bus_m0();
