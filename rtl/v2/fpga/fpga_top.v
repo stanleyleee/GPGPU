@@ -75,6 +75,7 @@ module fpga_top(
 	scalar_t ts_instruction_pc;
 	logic id_instruction_valid;
 	scalar_t id_instruction_pc;
+	logic ts_fetch_en;
 
 	axi_interface axi_bus_m0();
 	axi_interface axi_bus_m1();
@@ -202,13 +203,12 @@ module fpga_top(
 				      .clk		(clk),
 				      .reset		(reset));
 
-`ifdef DEBUG_TRACE
 	logic[87:0] capture_data;
 	logic capture_enable;
 	logic trigger;
 	logic[31:0] event_count;
 	
-	assign capture_data = { event_count[7:0], 6'b010010, id_instruction_valid, ts_instruction_valid,
+	assign capture_data = { event_count[7:0], 5'b10010, ts_fetch_en, id_instruction_valid, ts_instruction_valid,
 		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
 	assign capture_enable = id_instruction_valid || ts_instruction_valid;
 	assign trigger = event_count == 120;
@@ -223,7 +223,6 @@ module fpga_top(
 		else if (capture_enable)
 			event_count <= event_count + 1;
 	end
-`endif
 					  
 	always_ff @(posedge clk, posedge reset)
 	begin

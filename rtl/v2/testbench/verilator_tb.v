@@ -88,8 +88,9 @@ module verilator_tb(
 	logic trigger;
 	logic[31:0] event_count;
 	logic uart_tx;
+	logic ts_fetch_en;
 	
-	assign capture_data = { event_count[7:0], 6'b010010, id_instruction_valid, ts_instruction_valid,
+	assign capture_data = { event_count[7:0], 5'b10010, ts_fetch_en, id_instruction_valid, ts_instruction_valid,
 		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
 	assign capture_enable = id_instruction_valid || ts_instruction_valid;
 	assign trigger = event_count == 8;

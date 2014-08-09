@@ -41,7 +41,8 @@ module gpgpu(
 	output logic      ts_instruction_valid,
 	output scalar_t   ts_instruction_pc,
 	output logic      id_instruction_valid,
-	output scalar_t   id_instruction_pc);
+	output scalar_t   id_instruction_pc,
+	output logic      ts_fetch_en);
 
 	l2req_packet_t l2i_request[`NUM_CORES];
 	l2rsp_packet_t l2_response;
