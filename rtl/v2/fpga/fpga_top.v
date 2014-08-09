@@ -62,6 +62,7 @@ module fpga_top(
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
+	scalar_t	id_instruction_pc;	// From gpgpu of gpgpu.v
 	wire [31:0]	io_address;		// From gpgpu of gpgpu.v
 	wire		io_read_en;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_write_data;		// From gpgpu of gpgpu.v
@@ -69,13 +70,14 @@ module fpga_top(
 	logic		pc_event_dram_page_hit;	// From sdram_controller of sdram_controller.v
 	logic		pc_event_dram_page_miss;// From sdram_controller of sdram_controller.v
 	wire		processor_halt;		// From gpgpu of gpgpu.v
+	scalar_t	ts_instruction_pc;	// From gpgpu of gpgpu.v
 	// End of automatics
 
 	logic ts_instruction_valid;
 	scalar_t ts_instruction_pc;
 	logic id_instruction_valid;
 	scalar_t id_instruction_pc;
-	logic ts_fetch_en;
+	logic DEBUG_fetch_en;
 
 	axi_interface axi_bus_m0();
 	axi_interface axi_bus_m1();
@@ -104,6 +106,11 @@ module fpga_top(
 		    .io_read_en		(io_read_en),
 		    .io_address		(io_address[31:0]),
 		    .io_write_data	(io_write_data[31:0]),
+		    .ts_instruction_valid(ts_instruction_valid),
+		    .ts_instruction_pc	(ts_instruction_pc),
+		    .id_instruction_valid(id_instruction_valid),
+		    .id_instruction_pc	(id_instruction_pc),
+		    .DEBUG_fetch_en	(DEBUG_fetch_en),
 		    // Inputs
 		    .clk		(clk),
 		    .reset		(reset),
@@ -208,7 +215,7 @@ module fpga_top(
 	logic trigger;
 	logic[31:0] event_count;
 	
-	assign capture_data = { event_count[7:0], 5'b10010, ts_fetch_en, id_instruction_valid, ts_instruction_valid,
+	assign capture_data = { event_count[7:0], 5'b10010, DEBUG_fetch_en, id_instruction_valid, ts_instruction_valid,
 		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
 	assign capture_enable = id_instruction_valid || ts_instruction_valid;
 	assign trigger = event_count == 120;

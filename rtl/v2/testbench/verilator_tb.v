@@ -41,16 +41,17 @@ module verilator_tb(
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
+	logic		DEBUG_fetch_en;		// From gpgpu of gpgpu.v
+	scalar_t	id_instruction_pc;	// From gpgpu of gpgpu.v
 	wire [31:0]	io_address;		// From gpgpu of gpgpu.v
 	wire		io_read_en;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_write_data;		// From gpgpu of gpgpu.v
 	wire		io_write_en;		// From gpgpu of gpgpu.v
+	scalar_t	ts_instruction_pc;	// From gpgpu of gpgpu.v
 	// End of automatics
 
 	logic ts_instruction_valid;
-	scalar_t ts_instruction_pc;
 	logic id_instruction_valid;
-	scalar_t id_instruction_pc;
 
 	`define CORE0 gpgpu.core_gen[0].core
 	`define MEMORY memory.memory.data

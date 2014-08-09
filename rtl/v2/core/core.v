@@ -44,7 +44,7 @@ module core
 	output scalar_t                        ts_instruction_pc,
 	output logic                           id_instruction_valid,
 	output scalar_t                        id_instruction_pc,
-	output logic                           ts_fetch_en);
+	output logic                           DEBUG_fetch_en);
 
 	scalar_t cr_creg_read_val;
 
@@ -116,8 +116,8 @@ module core
 	l1i_tag_t	ift_tag [`L1I_WAYS];	// From ifetch_tag_stage of ifetch_tag_stage.v
 	thread_idx_t	ift_thread_idx;		// From ifetch_tag_stage of ifetch_tag_stage.v
 	logic		ift_valid [`L1I_WAYS];	// From ifetch_tag_stage of ifetch_tag_stage.v
-	scalar_t	ior_read_value;		// From writeback_stage of writeback_stage.v, ...
-	logic		ior_rollback_en;	// From writeback_stage of writeback_stage.v, ...
+	scalar_t	ior_read_value;		// From io_request_queue of io_request_queue.v
+	logic		ior_rollback_en;	// From io_request_queue of io_request_queue.v
 	logic [`THREADS_PER_CORE-1:0] ior_wake_bitmap;// From io_request_queue of io_request_queue.v
 	wire		l2i_dcache_lru_fill_en;	// From l2_cache_interface of l2_cache_interface.v
 	l1d_set_idx_t	l2i_dcache_lru_fill_set;// From l2_cache_interface of l2_cache_interface.v
@@ -241,6 +241,7 @@ module core
 	scalar_t	sx_rollback_pc;		// From single_cycle_execute_stage of single_cycle_execute_stage.v
 	subcycle_t	sx_subcycle;		// From single_cycle_execute_stage of single_cycle_execute_stage.v
 	thread_idx_t	sx_thread_idx;		// From single_cycle_execute_stage of single_cycle_execute_stage.v
+	wire [`THREADS_PER_CORE-1:0] ts_fetch_en;// From thread_select_stage of thread_select_stage.v
 	decoded_instruction_t ts_instruction;	// From thread_select_stage of thread_select_stage.v
 	subcycle_t	ts_subcycle;		// From thread_select_stage of thread_select_stage.v
 	thread_idx_t	ts_thread_idx;		// From thread_select_stage of thread_select_stage.v
@@ -264,6 +265,7 @@ module core
 
 	assign ts_instruction_pc = ts_instruction.pc;
 	assign id_instruction_pc = id_instruction.pc;
+	assign DEBUG_fetch_en = ts_fetch_en[0];
 
 	// 
 	// Instruction Execution Pipeline
