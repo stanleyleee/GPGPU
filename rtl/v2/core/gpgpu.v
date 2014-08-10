@@ -25,10 +25,10 @@
 //
 
 module gpgpu(
-	input             clk,
-	input             reset,
-	axi_interface     axi_bus,
-	output            processor_halt,
+	input                 clk,
+	input                 reset,
+	axi_interface.master  axi_bus,
+	output                processor_halt,
 
 	// Non-cacheable memory signals
 	output            io_write_en,
