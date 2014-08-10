@@ -77,12 +77,6 @@ module fpga_top(
 	wire		processor_halt;		// From gpgpu of gpgpu.v
 	// End of automatics
 
-	logic DEBUG_is_sync_store;
-	logic DEBUG_is_sync_load;
-	thread_idx_t DEBUG_sync_id;
-	logic DEBUG_sync_store_success;
-	scalar_t DEBUG_sync_address;
-
 	axi_interface axi_bus_m0();
 	axi_interface axi_bus_m1();
 	axi_interface axi_bus_s0();
