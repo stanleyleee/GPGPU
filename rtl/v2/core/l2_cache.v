@@ -35,7 +35,14 @@ module l2_cache(
 	input l2req_packet_t         l2i_request[`NUM_CORES],
 	output                       l2_ready[`NUM_CORES],
 	output l2rsp_packet_t        l2_response,
-	axi_interface.master         axi_bus);
+	axi_interface.master         axi_bus,
+
+	// debug
+	output logic                 DEBUG_is_sync_store,
+	output logic                 DEBUG_is_sync_load,
+	output thread_idx_t          DEBUG_sync_id,
+	output logic                 DEBUG_sync_store_success,
+	output scalar_t              DEBUG_sync_address);
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)

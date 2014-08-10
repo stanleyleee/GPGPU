@@ -64,7 +64,15 @@ module l2_cache_read(
 	
 	// To bus interface unit
 	output l2_tag_t                           l2r_replace_tag,
-	output logic                              l2r_replace_needs_writeback);
+	output logic                              l2r_replace_needs_writeback,
+	
+	// Debug
+	output logic                              DEBUG_is_sync_store,
+	output logic                              DEBUG_is_sync_load,
+	output thread_idx_t                       DEBUG_sync_id,
+	output logic                              DEBUG_sync_store_success,
+	output scalar_t                           DEBUG_sync_address);
+	
 
 	localparam TOTAL_THREADS = `NUM_CORES * `THREADS_PER_CORE;
 
@@ -86,6 +94,12 @@ module l2_cache_read(
 	assign l2_addr = l2t_request.address;
 	assign is_store = l2t_request.packet_type == L2REQ_STORE 
 		|| l2t_request.packet_type == L2REQ_STORE_SYNC;
+
+	assign DEBUG_is_sync_store = l2t_request.valid && l2t_request.packet_type == L2REQ_STORE_SYNC;
+	assign DEBUG_is_sync_load = l2t_request.valid && l2t_request.packet_type == L2REQ_LOAD_SYNC;
+	assign DEBUG_sync_id = l2t_request.id;
+	assign DEBUG_sync_store_success = can_store_sync;
+	assign DEBUG_sync_address = l2t_request.address;
 
 	// 
 	// Check for cache hit

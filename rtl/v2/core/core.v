@@ -37,15 +37,8 @@ module core
 	// Non-cacheable IO interface
 	output ioreq_packet_t                  ior_request,
 	input                                  ia_ready,
-	input iorsp_packet_t                   ia_response,
+	input iorsp_packet_t                   ia_response);
 	
-	// DEBUG
-	output logic                           ts_instruction_valid,
-	output scalar_t                        ts_instruction_pc,
-	output logic                           id_instruction_valid,
-	output scalar_t                        id_instruction_pc,
-	output logic                           DEBUG_fetch_en);
-
 	scalar_t cr_creg_read_val;
 
 	/*AUTOWIRE*/
@@ -99,6 +92,7 @@ module core
 	thread_idx_t	dt_thread_idx;		// From dcache_tag_stage of dcache_tag_stage.v
 	logic		dt_valid [`L1D_WAYS];	// From dcache_tag_stage of dcache_tag_stage.v
 	decoded_instruction_t id_instruction;	// From instruction_decode_stage of instruction_decode_stage.v
+	logic		id_instruction_valid;	// From instruction_decode_stage of instruction_decode_stage.v
 	thread_idx_t	id_thread_idx;		// From instruction_decode_stage of instruction_decode_stage.v
 	logic		ifd_cache_miss;		// From ifetch_data_stage of ifetch_data_stage.v
 	scalar_t	ifd_cache_miss_addr;	// From ifetch_data_stage of ifetch_data_stage.v
@@ -243,6 +237,7 @@ module core
 	thread_idx_t	sx_thread_idx;		// From single_cycle_execute_stage of single_cycle_execute_stage.v
 	wire [`THREADS_PER_CORE-1:0] ts_fetch_en;// From thread_select_stage of thread_select_stage.v
 	decoded_instruction_t ts_instruction;	// From thread_select_stage of thread_select_stage.v
+	logic		ts_instruction_valid;	// From thread_select_stage of thread_select_stage.v
 	subcycle_t	ts_subcycle;		// From thread_select_stage of thread_select_stage.v
 	thread_idx_t	ts_thread_idx;		// From thread_select_stage of thread_select_stage.v
 	wire		wb_fault;		// From writeback_stage of writeback_stage.v
@@ -262,10 +257,6 @@ module core
 	thread_idx_t	wb_writeback_thread_idx;// From writeback_stage of writeback_stage.v
 	vector_t	wb_writeback_value;	// From writeback_stage of writeback_stage.v
 	// End of automatics
-
-	assign ts_instruction_pc = ts_instruction.pc;
-	assign id_instruction_pc = id_instruction.pc;
-	assign DEBUG_fetch_en = ts_fetch_en[0];
 
 	// 
 	// Instruction Execution Pipeline

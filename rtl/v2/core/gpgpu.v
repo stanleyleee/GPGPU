@@ -38,11 +38,11 @@ module gpgpu(
 	input [31:0]      io_read_data,
 	
 	// DEBUG
-	output logic      ts_instruction_valid,
-	output scalar_t   ts_instruction_pc,
-	output logic      id_instruction_valid,
-	output scalar_t   id_instruction_pc,
-	output logic      DEBUG_fetch_en);
+	output logic                 DEBUG_is_sync_store,
+	output logic                 DEBUG_is_sync_load,
+	output thread_idx_t          DEBUG_sync_id,
+	output logic                 DEBUG_sync_store_success,
+	output scalar_t              DEBUG_sync_address);
 
 	l2req_packet_t l2i_request[`NUM_CORES];
 	l2rsp_packet_t l2_response;

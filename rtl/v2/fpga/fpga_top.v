@@ -62,7 +62,8 @@ module fpga_top(
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
-	scalar_t	id_instruction_pc;	// From gpgpu of gpgpu.v
+	scalar_t	DEBUG_sync_address;	// From gpgpu of gpgpu.v
+	thread_idx_t	DEBUG_sync_id;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_address;		// From gpgpu of gpgpu.v
 	wire		io_read_en;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_write_data;		// From gpgpu of gpgpu.v
@@ -70,12 +71,13 @@ module fpga_top(
 	logic		pc_event_dram_page_hit;	// From sdram_controller of sdram_controller.v
 	logic		pc_event_dram_page_miss;// From sdram_controller of sdram_controller.v
 	wire		processor_halt;		// From gpgpu of gpgpu.v
-	scalar_t	ts_instruction_pc;	// From gpgpu of gpgpu.v
 	// End of automatics
 
-	logic ts_instruction_valid;
-	logic id_instruction_valid;
-	logic DEBUG_fetch_en;
+	logic DEBUG_is_sync_store;
+	logic DEBUG_is_sync_load;
+	thread_idx_t DEBUG_sync_id;
+	logic DEBUG_sync_store_success;
+	scalar_t DEBUG_sync_address;
 
 	axi_interface axi_bus_m0();
 	axi_interface axi_bus_m1();
@@ -104,11 +106,11 @@ module fpga_top(
 		    .io_read_en		(io_read_en),
 		    .io_address		(io_address[31:0]),
 		    .io_write_data	(io_write_data[31:0]),
-		    .ts_instruction_valid(ts_instruction_valid),
-		    .ts_instruction_pc	(ts_instruction_pc),
-		    .id_instruction_valid(id_instruction_valid),
-		    .id_instruction_pc	(id_instruction_pc),
-		    .DEBUG_fetch_en	(DEBUG_fetch_en),
+		    .DEBUG_is_sync_store(DEBUG_is_sync_store),
+		    .DEBUG_is_sync_load	(DEBUG_is_sync_load),
+		    .DEBUG_sync_id	(DEBUG_sync_id),
+		    .DEBUG_sync_store_success(DEBUG_sync_store_success),
+		    .DEBUG_sync_address	(DEBUG_sync_address),
 		    // Inputs
 		    .clk		(clk),
 		    .reset		(reset),
@@ -211,12 +213,13 @@ module fpga_top(
 	logic[87:0] capture_data;
 	logic capture_enable;
 	logic trigger;
-	logic[31:0] event_count;
+	logic[31:0] clock_count;
 	
-	assign capture_data = { event_count[7:0], 5'b10010, DEBUG_fetch_en, id_instruction_valid, ts_instruction_valid,
-		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
-	assign capture_enable = id_instruction_valid || ts_instruction_valid;
-	assign trigger = event_count == 120;
+	assign capture_data = { 3'b000, DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_id,
+		DEBUG_sync_store_success, DEBUG_sync_address
+	 };
+	assign capture_enable = DEBUG_is_sync_store || DEBUG_is_sync_load;
+	assign trigger = clock_count == 100000;
 
 	debug_trace #(.CAPTURE_WIDTH_BITS($bits(capture_data)), .CAPTURE_SIZE(128),
 		.BAUD_DIVIDE(50000000 / 115200)) debug_trace(.*);
@@ -224,11 +227,11 @@ module fpga_top(
 	always_ff @(posedge clk, posedge reset)
 	begin
 		if (reset)
-			event_count <= 0;
-		else if (capture_enable)
-			event_count <= event_count + 1;
+			clock_count <= 0;
+		else
+			clock_count <= clock_count + 1;
 	end
-					  
+
 	always_ff @(posedge clk, posedge reset)
 	begin
 		if (reset)

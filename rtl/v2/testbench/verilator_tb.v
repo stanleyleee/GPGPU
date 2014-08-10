@@ -41,13 +41,16 @@ module verilator_tb(
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
-	logic		DEBUG_fetch_en;		// From gpgpu of gpgpu.v
-	scalar_t	id_instruction_pc;	// From gpgpu of gpgpu.v
+	logic		DEBUG_is_sync_load;	// From gpgpu of gpgpu.v
+	logic		DEBUG_is_sync_store;	// From gpgpu of gpgpu.v
+	scalar_t	DEBUG_sync_address;	// From gpgpu of gpgpu.v
+	thread_idx_t	DEBUG_sync_id;		// From gpgpu of gpgpu.v
+	logic		DEBUG_sync_store_success;// From gpgpu of gpgpu.v
 	wire [31:0]	io_address;		// From gpgpu of gpgpu.v
 	wire		io_read_en;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_write_data;		// From gpgpu of gpgpu.v
 	wire		io_write_en;		// From gpgpu of gpgpu.v
-	scalar_t	ts_instruction_pc;	// From gpgpu of gpgpu.v
+	wire		uart_tx;		// From debug_trace of debug_trace.v
 	// End of automatics
 
 	logic ts_instruction_valid;
@@ -87,26 +90,24 @@ module verilator_tb(
 	logic[87:0] capture_data;
 	logic capture_enable;
 	logic trigger;
-	logic[31:0] event_count;
-	logic uart_tx;
-	logic ts_fetch_en;
+	logic[31:0] clock_count;
 	
-	assign capture_data = { event_count[7:0], 5'b10010, ts_fetch_en, id_instruction_valid, ts_instruction_valid,
-		id_instruction_pc, ts_instruction_pc, event_count[7:0] };
-	assign capture_enable = id_instruction_valid || ts_instruction_valid;
-	assign trigger = event_count == 8;
+	assign capture_data = { 3'b000, DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_id,
+		DEBUG_sync_store_success, DEBUG_sync_address
+	 };
+	assign capture_enable = DEBUG_is_sync_store || DEBUG_is_sync_load;
+	assign trigger = clock_count == 100000;
 
 	debug_trace #(.CAPTURE_WIDTH_BITS($bits(capture_data)), .CAPTURE_SIZE(128),
-		.BAUD_DIVIDE(1)) debug_trace(.*);
+		.BAUD_DIVIDE(50000000 / 115200)) debug_trace(.*);
 
 	always_ff @(posedge clk, posedge reset)
 	begin
 		if (reset)
-			event_count <= 0;
-		else if (capture_enable)
-			event_count <= event_count + 1;
+			clock_count <= 0;
+		else
+			clock_count <= clock_count + 1;
 	end
-
 	
 	int total_cycles = 0;
 	reg[1000:0] filename;
