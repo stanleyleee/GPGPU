@@ -107,6 +107,10 @@ module writeback_stage(
 	// To thread select
 	output logic[`THREADS_PER_CORE - 1:0] wb_suspend_thread_oh,
 	
+	output logic                     DEBUG_retire_sync_store,
+	output logic                     DEBUG_retire_sync_success,
+	output thread_idx_t              DEBUG_retire_thread,
+	
 	// Performance counters
 	output logic                     perf_instruction_retire,
 	output logic                     perf_store_rollback);
@@ -129,6 +133,11 @@ module writeback_stage(
  	
 	assign perf_instruction_retire = mx5_instruction_valid || sx_instruction_valid || dd_instruction_valid;
 	assign perf_store_rollback = sq_full_rollback_en;
+
+	assign DEBUG_retire_sync_store = dd_instruction_valid && dd_instruction.is_memory_access
+		&& !dd_instruction.is_load && dd_instruction.memory_access_type == MEM_SYNC;
+	assign DEBUG_retire_sync_success = sq_store_sync_success;
+	assign DEBUG_retire_thread = dd_thread_idx;
 
 	//
 	// Rollback control logic

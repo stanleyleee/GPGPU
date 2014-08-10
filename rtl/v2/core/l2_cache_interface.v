@@ -42,6 +42,11 @@ module l2_cache_interface
 	#(parameter CORE_ID = 0)
 	(input                                        clk,
 	input                                         reset,
+	
+	// DEBUG
+	output                                        DEBUG_storebuf_l2_response_valid,
+	output l1_miss_entry_idx_t                    DEBUG_storebuf_l2_response_idx,
+	output                                        DEBUG_storebuf_l2_sync_success,
 
 	// To l2_cache
 	output l2req_packet_t                         l2i_request,
@@ -154,6 +159,10 @@ module l2_cache_interface
 	l1d_addr_t dcache_addr_stage2;
 	l1i_addr_t icache_addr_stage2;
 	logic storebuf_l2_sync_success;
+
+	assign DEBUG_storebuf_l2_response_valid = storebuf_l2_response_valid;
+	assign DEBUG_storebuf_l2_response_idx = storebuf_l2_response_idx;
+	assign DEBUG_storebuf_l2_sync_success = storebuf_l2_sync_success;
 
 	l1_store_queue store_buffer(.*);
 

@@ -34,6 +34,14 @@ module core
 	output l2req_packet_t                  l2i_request,
 	input l2rsp_packet_t                   l2_response,
 
+	// DEBUG
+	output logic                           DEBUG_retire_sync_store,
+	output logic                           DEBUG_retire_sync_success,
+	output thread_idx_t                    DEBUG_retire_thread,
+	output                                 DEBUG_storebuf_l2_response_valid,
+	output l1_miss_entry_idx_t             DEBUG_storebuf_l2_response_idx,
+	output                                 DEBUG_storebuf_l2_sync_success,
+
 	// Non-cacheable IO interface
 	output ioreq_packet_t                  ior_request,
 	input                                  ia_ready,

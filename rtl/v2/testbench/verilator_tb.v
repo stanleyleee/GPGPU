@@ -43,6 +43,12 @@ module verilator_tb(
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
 	logic		DEBUG_is_sync_load;	// From gpgpu of gpgpu.v
 	logic		DEBUG_is_sync_store;	// From gpgpu of gpgpu.v
+	logic		DEBUG_retire_sync_store;// From gpgpu of gpgpu.v
+	logic		DEBUG_retire_sync_success;// From gpgpu of gpgpu.v
+	thread_idx_t	DEBUG_retire_thread;	// From gpgpu of gpgpu.v
+	l1_miss_entry_idx_t DEBUG_storebuf_l2_response_idx;// From gpgpu of gpgpu.v
+	wire		DEBUG_storebuf_l2_response_valid;// From gpgpu of gpgpu.v
+	wire		DEBUG_storebuf_l2_sync_success;// From gpgpu of gpgpu.v
 	scalar_t	DEBUG_sync_address;	// From gpgpu of gpgpu.v
 	thread_idx_t	DEBUG_sync_id;		// From gpgpu of gpgpu.v
 	logic		DEBUG_sync_store_success;// From gpgpu of gpgpu.v

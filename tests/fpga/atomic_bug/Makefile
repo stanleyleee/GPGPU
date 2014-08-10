@@ -30,6 +30,9 @@ bug.hex: main.cpp start.s Barrier.h
 run: bug.hex
 	jload bug.hex
 
+verirun: bug.hex
+	../../../rtl/v2/obj_dir/Vverilator_tb +bin=bug.hex
+
 clean: FORCE
 	rm -f bug.elf bug.hex
 

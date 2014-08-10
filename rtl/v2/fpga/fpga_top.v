@@ -62,6 +62,10 @@ module fpga_top(
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
+	logic		DEBUG_retire_sync_store;// From gpgpu of gpgpu.v
+	l1_miss_entry_idx_t DEBUG_storebuf_l2_response_idx;// From gpgpu of gpgpu.v
+	wire		DEBUG_storebuf_l2_response_valid;// From gpgpu of gpgpu.v
+	wire		DEBUG_storebuf_l2_sync_success;// From gpgpu of gpgpu.v
 	scalar_t	DEBUG_sync_address;	// From gpgpu of gpgpu.v
 	thread_idx_t	DEBUG_sync_id;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_address;		// From gpgpu of gpgpu.v
@@ -111,6 +115,12 @@ module fpga_top(
 		    .DEBUG_sync_id	(DEBUG_sync_id),
 		    .DEBUG_sync_store_success(DEBUG_sync_store_success),
 		    .DEBUG_sync_address	(DEBUG_sync_address),
+		    .DEBUG_retire_sync_store(DEBUG_retire_sync_store),
+		    .DEBUG_retire_sync_success(DEBUG_retire_sync_success),
+		    .DEBUG_retire_thread(DEBUG_retire_thread),
+		    .DEBUG_storebuf_l2_response_valid(DEBUG_storebuf_l2_response_valid),
+		    .DEBUG_storebuf_l2_response_idx(DEBUG_storebuf_l2_response_idx),
+		    .DEBUG_storebuf_l2_sync_success(DEBUG_storebuf_l2_sync_success),
 		    // Inputs
 		    .clk		(clk),
 		    .reset		(reset),
@@ -210,14 +220,18 @@ module fpga_top(
 				      .clk		(clk),
 				      .reset		(reset));
 
-	logic[87:0] capture_data;
+	logic[31:0] capture_data;
 	logic capture_enable;
 	logic trigger;
 	logic[31:0] clock_count;
 	
-	assign capture_data = { 3'b000, DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_id,
-		DEBUG_sync_store_success, DEBUG_sync_address
+	assign capture_data = { 
+		8'b10101010,
+		4'b0000, DEBUG_retire_sync_store, DEBUG_retire_sync_success, DEBUG_retire_thread,
+		3'b000, DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_store_success, DEBUG_sync_id,
+		4'b0000, DEBUG_storebuf_l2_response_valid, DEBUG_storebuf_l2_sync_success, DEBUG_storebuf_l2_response_idx,
 	 };
+
 	assign capture_enable = DEBUG_is_sync_store || DEBUG_is_sync_load;
 	assign trigger = clock_count == 100000;
 

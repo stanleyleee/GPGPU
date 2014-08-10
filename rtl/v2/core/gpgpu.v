@@ -42,7 +42,13 @@ module gpgpu(
 	output logic                 DEBUG_is_sync_load,
 	output thread_idx_t          DEBUG_sync_id,
 	output logic                 DEBUG_sync_store_success,
-	output scalar_t              DEBUG_sync_address);
+	output scalar_t              DEBUG_sync_address,
+	output logic                 DEBUG_retire_sync_store,
+	output logic                 DEBUG_retire_sync_success,
+	output thread_idx_t          DEBUG_retire_thread,
+	output                       DEBUG_storebuf_l2_response_valid,
+	output l1_miss_entry_idx_t   DEBUG_storebuf_l2_response_idx,
+	output                       DEBUG_storebuf_l2_sync_success);
 
 	l2req_packet_t l2i_request[`NUM_CORES];
 	l2rsp_packet_t l2_response;
