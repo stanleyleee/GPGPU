@@ -53,6 +53,11 @@ module l1_store_queue(
 	output                                 sq_full_rollback_en,
 	output logic[`THREADS_PER_CORE - 1:0]  sq_wake_bitmap,
 
+	// DEBUG
+	output logic      DEBUG_sq_sync_response,
+	output logic      DEBUG_sq_sync_result,
+	output thread_idx_t DEBUG_sq_sync_thread,
+
 	// From l2_cache_interface
 	input                                  sq_dequeue_ack,
 	input                                  storebuf_l2_response_valid,
@@ -145,9 +150,14 @@ module l1_store_queue(
 				if (reset)
 				begin
 					pending_stores[thread_idx] <= 0;
+					DEBUG_sq_sync_response <= 0;
+					DEBUG_sq_sync_result <= 0;
 				end
 				else 
 				begin
+					DEBUG_sq_sync_response <= 0;
+					DEBUG_sq_sync_result <= 0;
+
 					if (send_this_cycle)
 						pending_stores[thread_idx].request_sent <= 1;
 
@@ -179,6 +189,10 @@ module l1_store_queue(
 							assert(pending_stores[thread_idx].response_received);
 							assert(dd_store_synchronized);	// Restarted instruction must be synchronized
 							pending_stores[thread_idx].valid <= 0;
+
+							DEBUG_sq_sync_response <= 1;
+							DEBUG_sq_sync_result <= pending_stores[thread_idx].sync_success;
+							DEBUG_sq_sync_thread <= thread_idx;
 						end
 						else if (update_store_data && !can_write_combine)
 						begin

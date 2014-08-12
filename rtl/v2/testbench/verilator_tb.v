@@ -46,6 +46,9 @@ module verilator_tb(
 	logic		DEBUG_retire_sync_store;// From gpgpu of gpgpu.v
 	logic		DEBUG_retire_sync_success;// From gpgpu of gpgpu.v
 	thread_idx_t	DEBUG_retire_thread;	// From gpgpu of gpgpu.v
+	logic		DEBUG_sq_sync_response;	// From gpgpu of gpgpu.v
+	logic		DEBUG_sq_sync_result;	// From gpgpu of gpgpu.v
+	thread_idx_t	DEBUG_sq_sync_thread;	// From gpgpu of gpgpu.v
 	l1_miss_entry_idx_t DEBUG_storebuf_l2_response_idx;// From gpgpu of gpgpu.v
 	wire		DEBUG_storebuf_l2_response_valid;// From gpgpu of gpgpu.v
 	wire		DEBUG_storebuf_l2_sync_success;// From gpgpu of gpgpu.v

@@ -62,12 +62,20 @@ module fpga_top(
 
 	/*AUTOWIRE*/
 	// Beginning of automatic wires (for undeclared instantiated-module outputs)
+	logic		DEBUG_is_sync_load;	// From gpgpu of gpgpu.v
+	logic		DEBUG_is_sync_store;	// From gpgpu of gpgpu.v
 	logic		DEBUG_retire_sync_store;// From gpgpu of gpgpu.v
+	logic		DEBUG_retire_sync_success;// From gpgpu of gpgpu.v
+	thread_idx_t	DEBUG_retire_thread;	// From gpgpu of gpgpu.v
+	logic		DEBUG_sq_sync_response;	// From gpgpu of gpgpu.v
+	logic		DEBUG_sq_sync_result;	// From gpgpu of gpgpu.v
+	thread_idx_t	DEBUG_sq_sync_thread;	// From gpgpu of gpgpu.v
 	l1_miss_entry_idx_t DEBUG_storebuf_l2_response_idx;// From gpgpu of gpgpu.v
 	wire		DEBUG_storebuf_l2_response_valid;// From gpgpu of gpgpu.v
 	wire		DEBUG_storebuf_l2_sync_success;// From gpgpu of gpgpu.v
 	scalar_t	DEBUG_sync_address;	// From gpgpu of gpgpu.v
 	thread_idx_t	DEBUG_sync_id;		// From gpgpu of gpgpu.v
+	logic		DEBUG_sync_store_success;// From gpgpu of gpgpu.v
 	wire [31:0]	io_address;		// From gpgpu of gpgpu.v
 	wire		io_read_en;		// From gpgpu of gpgpu.v
 	wire [31:0]	io_write_data;		// From gpgpu of gpgpu.v
@@ -115,6 +123,9 @@ module fpga_top(
 		    .DEBUG_storebuf_l2_response_valid(DEBUG_storebuf_l2_response_valid),
 		    .DEBUG_storebuf_l2_response_idx(DEBUG_storebuf_l2_response_idx),
 		    .DEBUG_storebuf_l2_sync_success(DEBUG_storebuf_l2_sync_success),
+		    .DEBUG_sq_sync_response(DEBUG_sq_sync_response),
+		    .DEBUG_sq_sync_result(DEBUG_sq_sync_result),
+		    .DEBUG_sq_sync_thread(DEBUG_sq_sync_thread),
 		    // Inputs
 		    .clk		(clk),
 		    .reset		(reset),
@@ -214,15 +225,16 @@ module fpga_top(
 				      .clk		(clk),
 				      .reset		(reset));
 
-	logic[31:0] capture_data;
+	logic[23:0] capture_data;
 	logic capture_enable;
 	logic trigger;
 	logic[31:0] clock_count;
 	
 	assign capture_data = { 
-		3'b010,
-		DEBUG_retire_sync_store, DEBUG_retire_sync_success, DEBUG_retire_thread,
+		7'b0101000,
 		DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_store_success, DEBUG_sync_id,
+		DEBUG_retire_sync_success, DEBUG_retire_sync_store, DEBUG_retire_thread,
+		DEBUG_sq_sync_response, DEBUG_sq_sync_result, DEBUG_sq_sync_thread,
 		DEBUG_storebuf_l2_response_valid, DEBUG_storebuf_l2_sync_success, DEBUG_storebuf_l2_response_idx,
 	 };
 

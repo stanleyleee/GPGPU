@@ -116,6 +116,11 @@ module l2_cache_interface
 	input scalar_t                                dd_store_bypass_addr,
 	input thread_idx_t                            dd_store_bypass_thread_idx,
 
+	// DEBUG
+	output logic      DEBUG_sq_sync_response,
+	output logic      DEBUG_sq_sync_result,
+	output thread_idx_t DEBUG_sq_sync_thread,
+
 	// To writeback stage
 	output [`CACHE_LINE_BYTES - 1:0]              sq_store_bypass_mask,
 	output logic                                  sq_store_sync_success,

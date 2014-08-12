@@ -318,6 +318,8 @@ module writeback_stage(
 
 			/*AUTORESET*/
 			// Beginning of autoreset for uninitialized flops
+			DEBUG_retire_sync_success <= 1'h0;
+			DEBUG_retire_thread <= 1'h0;
 			__debug_is_sync_store <= 1'h0;
 			__debug_wb_pc <= 1'h0;
 			wb_writeback_en <= 1'h0;

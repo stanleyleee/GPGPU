@@ -48,8 +48,11 @@ module gpgpu(
 	output thread_idx_t          DEBUG_retire_thread,
 	output                       DEBUG_storebuf_l2_response_valid,
 	output l1_miss_entry_idx_t   DEBUG_storebuf_l2_response_idx,
-	output                       DEBUG_storebuf_l2_sync_success);
-
+	output                       DEBUG_storebuf_l2_sync_success,
+	output logic      DEBUG_sq_sync_response,
+	output logic      DEBUG_sq_sync_result,
+	output thread_idx_t DEBUG_sq_sync_thread);
+	
 	l2req_packet_t l2i_request[`NUM_CORES];
 	l2rsp_packet_t l2_response;
 	logic l2_ready[`NUM_CORES];

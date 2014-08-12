@@ -23,16 +23,17 @@ import sys
 # (msb first), decode and print in CSV format.
 
 fields = [
-	(None, 12),
-	('retire_sync_store', 1),
-	('retire_sync_success', 1),
-	('retire_thread', 2),
-	(None, 3),
+	(None, 7),
 	('is_sync_store', 1),
 	('is_sync_load', 1),
 	('sync_store_success', 1),
 	('sync_id', 2),
-	(None, 4),
+	('retire_sync_store', 1),
+	('retire_sync_success', 1),
+	('retire_thread', 2),
+	('sq_sync_response', 1),
+	('sq_sync_result', 1),
+	('sq_sync_thread', 2),
 	('storebuf_l2_response_valid', 1),
 	('storebuf_l2_sync_success', 1),
 	('storebuf_l2_response_idx', 2)
@@ -51,10 +52,6 @@ print ''
 for line in sys.stdin.readlines():
 	hexstr = line[:2] + hexstr
 	if len(hexstr) == BYTES_PER_TRACE * 2:
-		if hexstr[0:2] != '55':
-			print 'bad trace record'
-			break
-
 		bigval = int(hexstr, 16)
 		lowoffset = 0
 		for name, width in reversed(fields):

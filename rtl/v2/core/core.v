@@ -41,6 +41,9 @@ module core
 	output                                 DEBUG_storebuf_l2_response_valid,
 	output l1_miss_entry_idx_t             DEBUG_storebuf_l2_response_idx,
 	output                                 DEBUG_storebuf_l2_sync_success,
+	output logic      DEBUG_sq_sync_response,
+	output logic      DEBUG_sq_sync_result,
+	output thread_idx_t DEBUG_sq_sync_thread,
 
 	// Non-cacheable IO interface
 	output ioreq_packet_t                  ior_request,
