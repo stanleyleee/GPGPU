@@ -226,7 +226,8 @@ module fpga_top(
 		4'b0000, DEBUG_storebuf_l2_response_valid, DEBUG_storebuf_l2_sync_success, DEBUG_storebuf_l2_response_idx,
 	 };
 
-	assign capture_enable = DEBUG_is_sync_store || DEBUG_is_sync_load;
+	assign capture_enable = DEBUG_is_sync_store || DEBUG_is_sync_load || DEBUG_retire_sync_store
+		|| DEBUG_storebuf_l2_response_valid;
 	assign trigger = clock_count == 100000;
 
 	debug_trace #(.CAPTURE_WIDTH_BITS($bits(capture_data)), .CAPTURE_SIZE(128),
