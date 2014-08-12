@@ -220,10 +220,10 @@ module fpga_top(
 	logic[31:0] clock_count;
 	
 	assign capture_data = { 
-		8'b10101010,
-		4'b0000, DEBUG_retire_sync_store, DEBUG_retire_sync_success, DEBUG_retire_thread,
-		3'b000, DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_store_success, DEBUG_sync_id,
-		4'b0000, DEBUG_storebuf_l2_response_valid, DEBUG_storebuf_l2_sync_success, DEBUG_storebuf_l2_response_idx,
+		3'b010,
+		DEBUG_retire_sync_store, DEBUG_retire_sync_success, DEBUG_retire_thread,
+		DEBUG_is_sync_store, DEBUG_is_sync_load, DEBUG_sync_store_success, DEBUG_sync_id,
+		DEBUG_storebuf_l2_response_valid, DEBUG_storebuf_l2_sync_success, DEBUG_storebuf_l2_response_idx,
 	 };
 
 	assign capture_enable = DEBUG_is_sync_store || DEBUG_is_sync_load || DEBUG_retire_sync_store

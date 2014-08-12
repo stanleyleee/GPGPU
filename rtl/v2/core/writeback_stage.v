@@ -134,11 +134,6 @@ module writeback_stage(
 	assign perf_instruction_retire = mx5_instruction_valid || sx_instruction_valid || dd_instruction_valid;
 	assign perf_store_rollback = sq_full_rollback_en;
 
-	assign DEBUG_retire_sync_store = dd_instruction_valid && dd_instruction.is_memory_access
-		&& !dd_instruction.is_load && dd_instruction.memory_access_type == MEM_SYNC;
-	assign DEBUG_retire_sync_success = sq_store_sync_success;
-	assign DEBUG_retire_thread = dd_thread_idx;
-
 	//
 	// Rollback control logic
 	//
@@ -319,6 +314,7 @@ module writeback_stage(
 		if (reset)
 		begin
 			__debug_wb_pipeline <= PIPE_MEM;
+			DEBUG_retire_sync_store <= 0;
 
 			/*AUTORESET*/
 			// Beginning of autoreset for uninitialized flops
@@ -335,6 +331,8 @@ module writeback_stage(
 		end
 		else
 		begin
+			DEBUG_retire_sync_store <= 0;
+
 			// Don't cause rollback if there isn't an instruction
 			assert(!(sq_full_rollback_en && !dd_instruction_valid));
 			
@@ -474,6 +472,9 @@ module writeback_stage(
 						// were successful).
 						assert(dd_instruction.has_dest && !dd_instruction.dest_is_vector)
 						wb_writeback_value[0] <= sq_store_sync_success;
+						DEBUG_retire_sync_store <= 1;
+						DEBUG_retire_sync_success <= sq_store_sync_success;
+						DEBUG_retire_thread <= dd_thread_idx;
 					end
 
 					// Used by testbench for cosimulation output
