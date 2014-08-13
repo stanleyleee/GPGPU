@@ -102,6 +102,12 @@ module l1_store_queue(
 		.index(send_grant_idx),
 		.one_hot(send_grant_oh));
 
+	assign DEBUG_sq_sync_response = dd_store_en && dd_store_synchronized
+		&& pending_stores[dd_store_thread_idx].valid && pending_stores[dd_store_thread_idx].response_received
+		&& pending_stores[dd_store_thread_idx].synchronized;
+	assign DEBUG_sq_sync_result = pending_stores[dd_store_thread_idx].sync_success;
+	assign DEBUG_sq_sync_thread = dd_store_thread_idx;
+
 	genvar thread_idx;
 	generate
 		for (thread_idx = 0; thread_idx < `THREADS_PER_CORE; thread_idx++)
@@ -150,14 +156,9 @@ module l1_store_queue(
 				if (reset)
 				begin
 					pending_stores[thread_idx] <= 0;
-					DEBUG_sq_sync_response <= 0;
-					DEBUG_sq_sync_result <= 0;
 				end
 				else 
 				begin
-					DEBUG_sq_sync_response <= 0;
-					DEBUG_sq_sync_result <= 0;
-
 					if (send_this_cycle)
 						pending_stores[thread_idx].request_sent <= 1;
 
@@ -189,10 +190,6 @@ module l1_store_queue(
 							assert(pending_stores[thread_idx].response_received);
 							assert(dd_store_synchronized);	// Restarted instruction must be synchronized
 							pending_stores[thread_idx].valid <= 0;
-
-							DEBUG_sq_sync_response <= 1;
-							DEBUG_sq_sync_result <= pending_stores[thread_idx].sync_success;
-							DEBUG_sq_sync_thread <= thread_idx;
 						end
 						else if (update_store_data && !can_write_combine)
 						begin
